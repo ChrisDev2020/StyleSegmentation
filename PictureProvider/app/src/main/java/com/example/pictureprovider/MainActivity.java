@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private static int RESULT_LOAD_IMAGE = 1;
     String FileURI = "undefined";
     Uri selectedImageUri;
-
+    String path;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +74,11 @@ public class MainActivity extends AppCompatActivity {
             //launchIntent.putExtra("imageUri", selectedImageUri);
             //launchIntent.putExtra("imageUri", selectedImageUri.toString());
             //launchIntent.putExtra("imageUri", selectedImageUri.toString());
+            launchIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
             launchIntent.putExtra("imagePath", selectedImageUri);
+            launchIntent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            launchIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            launchIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             //launchIntent.setData(selectedImageUri);
             startActivity(launchIntent);
 
@@ -83,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
 }
 
     public void OpenGallery(View view) {
-        Intent gallery = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent gallery = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         gallery.setType("image/*");
         startActivityForResult(gallery, RESULT_LOAD_IMAGE);
     }
@@ -98,10 +102,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+           // File imageFile = new File(getRealPathFromURI(selectedImageURI));
+            //path = imageFile.getAbsolutePath();
 
-            File file = new File(selectedImageUri.getPath());
-            file = new File(file.getAbsolutePath());
-            String pathDebug = file.getAbsolutePath();
             //String realURI = RealPathUtil.getRealPath(getApplicationContext(), imageUri) ;  // getRealPathFromURI2(imageUri);
             imgView.setImageURI(selectedImageUri);
 
@@ -110,6 +113,20 @@ public class MainActivity extends AppCompatActivity {
             DebugText.setText("selectedImageUri: " + selectedImageUri);
 
         }
+    }
+
+    private String getRealPathFromURI(Uri contentURI) {
+        String result;
+        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
+        if (cursor == null) { // Source is Dropbox or other similar local file path
+            result = contentURI.getPath();
+        } else {
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            result = cursor.getString(idx);
+            cursor.close();
+        }
+        return result;
     }
 }
 
